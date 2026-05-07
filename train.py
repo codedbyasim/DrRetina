@@ -649,7 +649,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="RetinAgent ViT-MAE Fine-tuning")
 
-    parser.add_argument("--data_dir",    type=str,   default="./Dataset",
+    parser.add_argument("--data_dir",    type=str,   default="./aptos2019-blindness-detection",
                         help="Root directory containing train.csv and train_images/")
     parser.add_argument("--output_dir",  type=str,   default="./checkpoints",
                         help="Directory to save model checkpoints and logs")
