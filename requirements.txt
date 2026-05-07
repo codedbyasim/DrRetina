@@ -1,0 +1,27 @@
+# RetinAgent - Python Dependencies
+# AMD Developer Hackathon 2026
+
+# ── Core Deep Learning ─────────────────────────────────────────
+# For NVIDIA GPU (local dev):
+torch>=2.0.0
+torchvision>=0.15.0
+
+# For AMD ROCm (AMD Developer Cloud) - install manually:
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm6.1
+
+# ── Hugging Face ───────────────────────────────────────────────
+transformers>=4.38.0
+huggingface_hub>=0.20.0
+
+# ── Computer Vision & Image Processing ────────────────────────
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# ── Data Science ───────────────────────────────────────────────
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+
+# ── Utilities ──────────────────────────────────────────────────
+tqdm>=4.65.0
