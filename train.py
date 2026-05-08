@@ -234,7 +234,7 @@ class DRClassifier(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Linear(hidden_size, 256),
-            nn.BatchNorm1d(256),
+            nn.LayerNorm(256),   # LayerNorm works with any batch size (BatchNorm1d crashes on batch=1)
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(256, num_classes),
