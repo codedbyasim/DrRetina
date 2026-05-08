@@ -30,11 +30,12 @@ import cv2
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torchvision import transforms
+from torch.cuda.amp import GradScaler, autocast
 
-from transformers import ViTMAEModel, ViTFeatureExtractor
+from transformers import ViTMAEModel
 from sklearn.metrics import cohen_kappa_score, accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
@@ -145,29 +146,53 @@ VAL_TRANSFORMS = transforms.Compose([
 
 class APTOSDataset(Dataset):
     """
-    APTOS 2019 Blindness Detection dataset.
-
-    Folder structure expected:
+    APTOS 2019 dataset supporting subfolder structures.
+    
+    Folder structure handled:
         data_dir/
-            train.csv          ← columns: id_code, diagnosis
-            train_images/      ← *.png files
+            train.csv
+            colored_images/ (or train_images/)
+                0/ (or No_DR/)
+                1/ (or Mild/)
+                ...
     """
 
     def __init__(self, df: pd.DataFrame, image_dir: str, transform=None):
         self.df        = df.reset_index(drop=True)
         self.image_dir = image_dir
         self.transform = transform
+        
+        # Create a mapping of id_code to actual path for faster lookup
+        print(f"[Dataset] Indexing images in {image_dir}...")
+        self.image_path_map = {}
+        for root, _, files in os.walk(image_dir):
+            for f in files:
+                if f.endswith('.png'):
+                    code = f.replace('.png', '')
+                    self.image_path_map[code] = os.path.join(root, f)
+        print(f"[Dataset] Found {len(self.image_path_map)} images.")
 
     def __len__(self) -> int:
         return len(self.df)
 
     def __getitem__(self, idx: int):
         row       = self.df.iloc[idx]
-        img_name  = row["id_code"] + ".png"
-        img_path  = os.path.join(self.image_dir, img_name)
+        id_code   = row["id_code"]
         label     = int(row["diagnosis"])
+        
+        # Get path from our pre-built map
+        img_path = self.image_path_map.get(id_code)
+        
+        if img_path is None:
+            # Fallback for original structure
+            img_path = os.path.join(self.image_dir, f"{id_code}.png")
 
-        img_pil = preprocess_image(img_path)  # circle crop + CLAHE + resize
+        try:
+            img_pil = preprocess_image(img_path)
+        except Exception as e:
+            # If image fails (corrupt), return a blank image and log
+            print(f"Error loading {id_code}: {e}")
+            img_pil = Image.new('RGB', (224, 224), (0, 0, 0))
 
         if self.transform:
             img_tensor = self.transform(img_pil)
@@ -200,10 +225,16 @@ class DRClassifier(nn.Module):
         print(f"[Model] Loading {self.MODEL_NAME} …")
         self.backbone = ViTMAEModel.from_pretrained(self.MODEL_NAME)
 
+        # CRITICAL FIX: Disable random masking for classification.
+        # ViTMAEModel masks 75% of patches by default — catastrophic for classification.
+        self.backbone.config.mask_ratio = 0.0
+        print("[Model] Masking disabled (mask_ratio=0.0) for classification.")
+
         hidden_size = self.backbone.config.hidden_size  # 768 for vit-mae-base
 
         self.classifier = nn.Sequential(
             nn.Linear(hidden_size, 256),
+            nn.BatchNorm1d(256),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(256, num_classes),
@@ -241,6 +272,25 @@ def compute_class_weights(labels: pd.Series, num_classes: int = 5) -> torch.Tens
     return torch.tensor(weights, dtype=torch.float32)
 
 
+def build_sampler(labels: pd.Series, num_classes: int = 5) -> WeightedRandomSampler:
+    """
+    WeightedRandomSampler: assigns each training sample a weight
+    inversely proportional to its class frequency, then samples
+    WITH replacement so every batch sees all 5 DR grades equally.
+    This directly combats the 49% Grade-0 dominance in APTOS 2019.
+    """
+    counts       = np.bincount(labels, minlength=num_classes).astype(float)
+    class_w      = 1.0 / (counts + 1e-6)
+    sample_w     = np.array([class_w[lbl] for lbl in labels], dtype=np.float32)
+    sampler      = WeightedRandomSampler(
+        weights     = torch.from_numpy(sample_w),
+        num_samples = len(sample_w),
+        replacement = True,
+    )
+    print("[Sampler] WeightedRandomSampler created — minority classes oversampled.")
+    return sampler
+
+
 # ─────────────────────────────────────────────────────────────────
 # 7.  COSINE LR SCHEDULER WITH LINEAR WARMUP
 # ─────────────────────────────────────────────────────────────────
@@ -270,7 +320,7 @@ class WarmupCosineScheduler:
 # ─────────────────────────────────────────────────────────────────
 # 8.  TRAIN / VALIDATE EPOCH
 # ─────────────────────────────────────────────────────────────────
-def train_epoch(model, loader, optimizer, criterion, device, epoch: int, total_epochs: int):
+def train_epoch(model, loader, optimizer, criterion, scaler, device, epoch: int, total_epochs: int):
     model.train()
     total_loss, preds_all, labels_all = 0.0, [], []
 
@@ -287,19 +337,22 @@ def train_epoch(model, loader, optimizer, criterion, device, epoch: int, total_e
         labels = labels.to(device, non_blocking=True)
 
         optimizer.zero_grad()
-        logits = model(images)
-        loss   = criterion(logits, labels)
-        loss.backward()
 
-        # Gradient clipping for stability
+        # AMP: mixed precision forward pass
+        with autocast():
+            logits = model(images)
+            loss   = criterion(logits, labels)
+
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
+        scaler.step(optimizer)
+        scaler.update()
 
         total_loss += loss.item() * images.size(0)
         preds_all.extend(logits.argmax(dim=1).cpu().numpy())
         labels_all.extend(labels.cpu().numpy())
 
-        # Update tqdm bar with running loss
         pbar.set_postfix({"loss": f"{loss.item():.4f}"})
 
     avg_loss = total_loss / len(loader.dataset)
@@ -483,26 +536,45 @@ def main(args):
     print(f"[Split] Train: {len(train_df)} | Val: {len(val_df)} | Test: {len(test_df)}")
 
     # ── 10.3  Datasets & Loaders ────────────────────────────────
-    img_dir = os.path.join(args.data_dir, "train_images")
+    # Auto-detect image directory (handles both original and sovitrath Kaggle structure)
+    for candidate in ("train_images", "colored_images", "."):
+        _cand = os.path.join(args.data_dir, candidate)
+        if os.path.isdir(_cand) and any(
+            f.endswith(".png") for _, _, files in os.walk(_cand) for f in files
+        ):
+            img_dir = _cand
+            break
+    else:
+        img_dir = args.data_dir
+    print(f"[Data] Image directory: {img_dir}")
 
     train_ds = APTOSDataset(train_df, img_dir, transform=TRAIN_TRANSFORMS)
     val_ds   = APTOSDataset(val_df,   img_dir, transform=VAL_TRANSFORMS)
     test_ds  = APTOSDataset(test_df,  img_dir, transform=VAL_TRANSFORMS)
 
     num_workers = min(4, os.cpu_count() or 1)
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
-                              num_workers=num_workers, pin_memory=True, drop_last=True)
-    val_loader   = DataLoader(val_ds,   batch_size=args.batch_size, shuffle=False,
-                              num_workers=num_workers, pin_memory=True)
-    test_loader  = DataLoader(test_ds,  batch_size=args.batch_size, shuffle=False,
-                              num_workers=num_workers, pin_memory=True)
+
+    # WeightedRandomSampler: oversamples Grade 3 & 4 (rare classes)
+    # shuffle=True is INCOMPATIBLE with sampler — sampler replaces it
+    train_sampler = build_sampler(train_df["diagnosis"])
+    train_loader  = DataLoader(train_ds, batch_size=args.batch_size,
+                               sampler=train_sampler,
+                               num_workers=num_workers, pin_memory=True,
+                               drop_last=False)
+    val_loader    = DataLoader(val_ds,   batch_size=args.batch_size, shuffle=False,
+                               num_workers=num_workers, pin_memory=True)
+    test_loader   = DataLoader(test_ds,  batch_size=args.batch_size, shuffle=False,
+                               num_workers=num_workers, pin_memory=True)
 
     # ── 10.4  Model ─────────────────────────────────────────────
     model = DRClassifier(num_classes=5, dropout=0.3).to(device)
 
-    # ── 10.5  Loss with class weights ───────────────────────────
+    # ── 10.5  Loss with class weights + label smoothing ────────
     class_weights = compute_class_weights(train_df["diagnosis"]).to(device)
-    criterion     = nn.CrossEntropyLoss(weight=class_weights)
+    criterion     = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)
+
+    # AMP GradScaler
+    scaler = GradScaler()
 
     # ── 10.6  Optimizer (differential LR) ───────────────────────
     param_groups = model.get_param_groups(
@@ -547,7 +619,7 @@ def main(args):
 
         # ── Train ───────────────────────────────────────────────
         train_loss, train_kappa, train_acc = train_epoch(
-            model, train_loader, optimizer, criterion, device,
+            model, train_loader, optimizer, criterion, scaler, device,
             epoch=epoch, total_epochs=args.epochs,
         )
 
@@ -587,9 +659,10 @@ def main(args):
                 "epoch":       epoch,
                 "model_state": model.state_dict(),
                 "optimizer":   optimizer.state_dict(),
-                "val_kappa":   val_kappa,
-                "val_acc":     val_acc,
-                "val_loss":    val_loss,
+                # Save as Python floats to avoid numpy scalar unpickling issues
+                "val_kappa":   float(val_kappa),
+                "val_acc":     float(val_acc),
+                "val_loss":    float(val_loss),
             }, best_model_path)
             print(f"\n  ✅ Best model saved  →  {best_model_path}")
 
@@ -616,7 +689,8 @@ def main(args):
     # ── 10.10  Final evaluation on test set ──────────────────────
     print("\n📋  TEST SET EVALUATION")
     print("─" * 60)
-    checkpoint = torch.load(best_model_path, map_location=device)
+    # weights_only=False needed for PyTorch 2.6+ compatibility
+    checkpoint = torch.load(best_model_path, map_location=device, weights_only=False)
     model.load_state_dict(checkpoint["model_state"])
 
     test_loss, test_kappa, test_acc, test_labels, test_preds = val_epoch(
@@ -655,8 +729,8 @@ if __name__ == "__main__":
                         help="Directory to save model checkpoints and logs")
     parser.add_argument("--epochs",      type=int,   default=30,
                         help="Number of training epochs (default: 30)")
-    parser.add_argument("--batch_size",  type=int,   default=32,
-                        help="Batch size (default: 32, reduce to 16 if OOM)")
+    parser.add_argument("--batch_size",  type=int,   default=128,
+                        help="Batch size (default: 128 for MI300X, reduce if OOM)")
     parser.add_argument("--backbone_lr", type=float, default=2e-5,
                         help="Learning rate for ViT-MAE backbone (default: 2e-5)")
     parser.add_argument("--head_lr",     type=float, default=1e-3,

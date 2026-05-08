@@ -1,6 +1,13 @@
-# Dataset
+# Datasets (never commit large data)
 Dataset/
 dataset/
+aptos2019-blindness-detection/
+colored_images/
+train_images/
+
+# Model checkpoints (large .pth files)
+checkpoints/
+*.pth
 
 # SSH Keys
 retinoagent
