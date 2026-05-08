@@ -5,7 +5,7 @@ FR-04: GradCAM | FR-05: NL Report | FR-06: Q&A Agent | FR-07: HF Deployment
 AMD Developer Hackathon 2026
 """
 
-import os, cv2, numpy as np
+import os, cv2, numpy as np, requests, base64, io
 from PIL import Image
 import torch, torch.nn as nn
 import torch.nn.functional as F
@@ -14,6 +14,8 @@ from transformers import ViTMAEModel
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.cm as cm
 import gradio as gr
+
+AMD_ENDPOINT = os.environ.get("AMD_ENDPOINT_URL", "").rstrip("/")
 
 # ─────────────────────────────────────────────────────────────────
 # CONSTANTS
@@ -161,6 +163,28 @@ def overlay_heatmap(pil224, cam_np):
 # INFERENCE
 # ─────────────────────────────────────────────────────────────────
 def predict(pil_img):
+    """Call AMD endpoint if available, else use local model."""
+    # ── Remote AMD inference (video approach) ─────────────────────
+    if AMD_ENDPOINT:
+        try:
+            buf = io.BytesIO()
+            pil_img.convert("RGB").save(buf, format="PNG")
+            buf.seek(0)
+            resp = requests.post(
+                f"{AMD_ENDPOINT}/predict",
+                files={"file": ("image.png", buf, "image/png")},
+                timeout=30,
+            )
+            data   = resp.json()
+            grade  = data["grade"]
+            probs  = data["probs"]
+            pil224 = Image.open(io.BytesIO(base64.b64decode(data["image_b64"])))
+            cam_pil = Image.open(io.BytesIO(base64.b64decode(data["cam_b64"])))
+            return grade, probs, pil224, cam_pil
+        except Exception as e:
+            print(f"[AMD endpoint error] {e} — falling back to local model")
+
+    # ── Local model fallback ───────────────────────────────────────
     model   = get_model()
     pil224, tensor = preprocess(pil_img)
     gradcam = ViTGradCAM(model)
