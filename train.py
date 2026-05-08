@@ -34,6 +34,7 @@ from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torchvision import transforms
 from torch.cuda.amp import GradScaler, autocast
+import torch.nn.functional as F
 
 from transformers import ViTMAEModel
 from sklearn.metrics import cohen_kappa_score, accuracy_score, classification_report
@@ -65,6 +66,25 @@ def set_seed(seed: int = SEED):
 # ─────────────────────────────────────────────────────────────────
 # NOTE: AMD ROCm exposes GPUs as 'cuda' in PyTorch – no extra code needed.
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+# ─────────────────────────────────────────────────────────────────
+# 2b. FOCAL LOSS  — improves rare class (Grade 3/4) detection
+# ─────────────────────────────────────────────────────────────────
+class FocalLoss(nn.Module):
+    """Focal Loss: down-weights easy examples so model focuses on rare/hard cases.
+    gamma=0 → standard CrossEntropy.  gamma=2 → standard for imbalanced datasets."""
+    def __init__(self, gamma: float = 2.0, label_smoothing: float = 0.1):
+        super().__init__()
+        self.gamma           = gamma
+        self.label_smoothing = label_smoothing
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        ce   = F.cross_entropy(logits, targets,
+                               label_smoothing=self.label_smoothing,
+                               reduction='none')       # [B]
+        pt   = torch.exp(-ce)                          # prob of correct class
+        return ((1 - pt) ** self.gamma * ce).mean()
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -572,10 +592,9 @@ def main(args):
     model = DRClassifier(num_classes=5, dropout=0.3).to(device)
 
     # ── 10.5  Loss ──────────────────────────────────────────────
-    # WeightedRandomSampler already balances class distribution per batch.
-    # Adding class weights ON TOP causes double-correction → unstable training.
-    # Using standard CE + label smoothing only.
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    # FocalLoss focuses training on hard/rare examples (Grade 3 & 4).
+    # gamma=2 is standard; label_smoothing prevents overconfidence.
+    criterion = FocalLoss(gamma=2.0, label_smoothing=0.1)
 
     # AMP GradScaler
     scaler = GradScaler()
