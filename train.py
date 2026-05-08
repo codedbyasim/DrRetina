@@ -234,7 +234,7 @@ class DRClassifier(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Linear(hidden_size, 256),
-            nn.LayerNorm(256),   # LayerNorm works with any batch size (BatchNorm1d crashes on batch=1)
+            nn.BatchNorm1d(256),  # Better accuracy than LayerNorm; safe with drop_last=True
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(256, num_classes),
@@ -556,11 +556,13 @@ def main(args):
 
     # WeightedRandomSampler: oversamples Grade 3 & 4 (rare classes)
     # shuffle=True is INCOMPATIBLE with sampler — sampler replaces it
+    # drop_last=True: prevents last batch from being size=1 (BatchNorm1d requires >1 sample)
+    # With batch_size=128 and 2929 samples, last batch has 113 samples — safe
     train_sampler = build_sampler(train_df["diagnosis"])
     train_loader  = DataLoader(train_ds, batch_size=args.batch_size,
                                sampler=train_sampler,
                                num_workers=num_workers, pin_memory=True,
-                               drop_last=False)
+                               drop_last=True)
     val_loader    = DataLoader(val_ds,   batch_size=args.batch_size, shuffle=False,
                                num_workers=num_workers, pin_memory=True)
     test_loader   = DataLoader(test_ds,  batch_size=args.batch_size, shuffle=False,
