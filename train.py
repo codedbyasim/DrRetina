@@ -540,9 +540,37 @@ def main(args):
     print(f"  Epochs : {args.epochs} | Batch: {args.batch_size}")
     print("=" * 60)
 
-    # ── 10.1  Load CSV ──────────────────────────────────────────
+    # ── 10.1  Load Data ──────────────────────────────────────────
     csv_path = os.path.join(args.data_dir, "train.csv")
-    df = pd.read_csv(csv_path)
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        print(f"[Data] Loaded {len(df)} samples from {csv_path}")
+    else:
+        # Folder-based discovery (ImageFolder style)
+        print(f"[Data] train.csv not found. Discovering classes from folders in {args.data_dir}...")
+        data = []
+        for class_id in range(5):
+            # Try '0', '1'... or alias names
+            aliases = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4"}
+            alt_aliases = {0: "No_DR", 1: "Mild", 2: "Moderate", 3: "Severe", 4: "Proliferate_DR"}
+            
+            class_path = os.path.join(args.data_dir, aliases[class_id])
+            if not os.path.isdir(class_path):
+                class_path = os.path.join(args.data_dir, alt_aliases[class_id])
+            
+            if os.path.isdir(class_path):
+                imgs = [f for f in os.listdir(class_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                for f in imgs:
+                    # id_code is just the filename (without extension)
+                    id_code = os.path.splitext(f)[0]
+                    data.append({"id_code": id_code, "diagnosis": class_id})
+        
+        if not data:
+            raise FileNotFoundError(f"No valid images or train.csv found in {args.data_dir}")
+        
+        df = pd.DataFrame(data)
+        print(f"[Data] Created DataFrame with {len(df)} samples from folder structure.")
+
     print(f"[Data] Total samples: {len(df)}")
     print(f"[Data] Label distribution:\n{df['diagnosis'].value_counts().sort_index()}")
 
