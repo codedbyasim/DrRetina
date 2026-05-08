@@ -569,9 +569,11 @@ def main(args):
     # ── 10.4  Model ─────────────────────────────────────────────
     model = DRClassifier(num_classes=5, dropout=0.3).to(device)
 
-    # ── 10.5  Loss with class weights + label smoothing ────────
-    class_weights = compute_class_weights(train_df["diagnosis"]).to(device)
-    criterion     = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)
+    # ── 10.5  Loss ──────────────────────────────────────────────
+    # WeightedRandomSampler already balances class distribution per batch.
+    # Adding class weights ON TOP causes double-correction → unstable training.
+    # Using standard CE + label smoothing only.
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
     # AMP GradScaler
     scaler = GradScaler()
