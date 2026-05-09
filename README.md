@@ -9,7 +9,7 @@ app_file: app.py
 pinned: false
 ---
 
-# 👁️ RetinAgent
+# 👁️ DrRetina
 
 
 ### _AI-Powered Diagnostic Agent for Diabetic Retinopathy_
@@ -30,9 +30,9 @@ pinned: false
 
 [![AMD MI300X](https://img.shields.io/badge/AMD-MI300X-ED1C24?style=for-the-badge&logo=amd)](https://www.amd.com/en/products/accelerators/instinct/mi300.html)
 [![ROCm](https://img.shields.io/badge/ROCm-6.x-blue?style=for-the-badge)](https://rocm.docs.amd.com/)
-[![Hugging Face](https://img.shields.io/badge/HF%20Spaces-RetinAgent-FFD21E?style=for-the-badge&logo=huggingface)](https://huggingface.co/spaces/lablab-ai-amd-developer-hackathon/RetinoAgent)
+[![Hugging Face](https://img.shields.io/badge/HF%20Spaces-DrRetina-FFD21E?style=for-the-badge&logo=huggingface)](https://huggingface.co/spaces/lablab-ai-amd-developer-hackathon/DrRetina)
 
-**RetinAgent** is a production-grade clinical AI system designed for early detection and management of Diabetic Retinopathy (DR). Built for the **AMD Developer Hackathon 2026 (Track 3)**, it leverages the massive parallel compute of **AMD Instinct™ MI300X** to deliver sub-second inference and advanced agentic clinical reporting.
+**DrRetina** is a production-grade clinical AI system designed for early detection and management of Diabetic Retinopathy (DR). Built for the **AMD Developer Hackathon 2026 (Track 3)**, it leverages the massive parallel compute of **AMD Instinct™ MI300X** to deliver sub-second inference and advanced agentic clinical reporting.
 
 ---
 
@@ -49,7 +49,7 @@ pinned: false
 
 ## 🚀 AMD Instinct™ MI300X Advantage
 
-RetinAgent is optimized for the **AMD Instinct™ MI300X** accelerator via **ROCm 6.x**:
+DrRetina is optimized for the **AMD Instinct™ MI300X** accelerator via **ROCm 6.x**:
 
 | Feature               | MI300X Performance  | Benefit                                                       |
 | --------------------- | ------------------- | ------------------------------------------------------------- |
@@ -95,8 +95,8 @@ graph TD
 
 1. Clone the repository:
    ```bash
-   git clone https://huggingface.co/spaces/lablab-ai-amd-developer-hackathon/RetinoAgent
-   cd RetinoAgent
+   git clone https://huggingface.co/spaces/lablab-ai-amd-developer-hackathon/DrRetina
+   cd DrRetina
    ```
 2. Install dependencies:
    ```bash

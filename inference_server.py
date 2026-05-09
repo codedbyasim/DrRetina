@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RetinAgent – AMD MI300X Inference Server
+DrRetina – AMD MI300X Inference Server
 Runs on AMD GPU server; exposes REST API for HF Spaces Gradio UI.
 
 Usage (on AMD server):
@@ -108,7 +108,7 @@ def pil_to_b64(img: Image.Image) -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 # ── FastAPI App ────────────────────────────────────────────────────
-app = FastAPI(title="RetinAgent Inference API")
+app = FastAPI(title="DrRetina Inference API")
 
 @app.get("/health")
 def health():

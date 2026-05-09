@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RetinAgent – Hugging Face Deployment Script
+DrRetina – Hugging Face Deployment Script
 Uploads model weights to HF Model Hub + code to HF Space
 """
 
@@ -11,8 +11,8 @@ from huggingface_hub import HfApi, login
 # CONFIG – fill these in
 # ─────────────────────────────────────────────────────────────────
 HF_TOKEN      = os.environ.get("HF_TOKEN", "")
-SPACE_REPO    = "lablab-ai-amd-developer-hackathon/RetinoAgent"   # Space
-MODEL_REPO    = "lablab-ai-amd-developer-hackathon/RetinoAgent-weights"  # Model repo (weights)
+SPACE_REPO    = "lablab-ai-amd-developer-hackathon/DrRetina"   # Space
+MODEL_REPO    = "lablab-ai-amd-developer-hackathon/DrRetina-weights"  # Model repo (weights)
 CHECKPOINT    = r"H:\RetinoAgent\checkpoints\best_model.pth"
 
 # Files to upload to the Space

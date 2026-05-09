@@ -1,5 +1,5 @@
 """
-RetinAgent - ViT-MAE Fine-tuning Script
+DrRetina - ViT-MAE Fine-tuning Script
 AMD Developer Hackathon 2026 | Track 3: Vision & Multimodal AI
 
 Fine-tunes facebook/vit-mae-base on APTOS 2019 dataset
@@ -455,7 +455,7 @@ def save_training_curves(history: dict, save_dir: str, current_epoch: int = None
     with plt.rc_context(PLOT_STYLE):
         fig = plt.figure(figsize=(22, 10))
         fig.suptitle(
-            f"RetinAgent  ▸  ViT-MAE Fine-tuning  "
+            f"DrRetina  ▸  ViT-MAE Fine-tuning  "
             f"({'Epoch ' + str(current_epoch) if current_epoch else 'Final'})",
             fontsize=15, fontweight="bold", color="#ffffff", y=0.98,
         )
@@ -534,7 +534,7 @@ def main(args):
     set_seed(SEED)
 
     print("=" * 60)
-    print("  RetinAgent – ViT-MAE Fine-tuning")
+    print("  DrRetina – ViT-MAE Fine-tuning")
     print(f"  Device : {device}")
     print(f"  Data   : {args.data_dir}")
     print(f"  Epochs : {args.epochs} | Batch: {args.batch_size}")
@@ -772,7 +772,7 @@ def main(args):
 # 11.  ARGUMENT PARSER
 # ─────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="RetinAgent ViT-MAE Fine-tuning")
+    parser = argparse.ArgumentParser(description="DrRetina ViT-MAE Fine-tuning")
 
     parser.add_argument("--data_dir",    type=str,   default="./aptos2019-blindness-detection",
                         help="Root directory containing train.csv and train_images/")

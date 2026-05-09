@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RetinAgent — Gradio UI  (Light Theme, Clean Medical Design)
+DrRetina — Gradio UI  (Light Theme, Clean Medical Design)
 """
 
 import gradio as gr
@@ -288,7 +288,7 @@ HEADER_HTML = """
         color: #1a202c;
         margin: 0;
         text-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    ">RetinAgent</h1>
+    ">DrRetina</h1>
   </div>
 
   <p style="position:relative; color: #4a5568; font-size: 1.1rem; margin-bottom: 1.8rem; font-weight: 500">
@@ -493,16 +493,16 @@ def get_report(grade, probs_list, language):
     report = generate_report(grade, probs, language)
     
     html_content = markdown.markdown(report, extensions=['tables'])
-    html_content = f"<html><head><meta charset='utf-8'><style>body {{ font-family: sans-serif; line-height: 1.6; padding: 2em; }} h1 {{ color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }} table {{ border-collapse: collapse; width: 100%; margin-bottom: 15px; }} th, td {{ border: 1px solid #ddd; padding: 8px; }} th {{ background-color: #f2f2f2; text-align: left; }}</style></head><body><h1>RetinAgent Clinical Report</h1>{html_content}</body></html>"
+    html_content = f"<html><head><meta charset='utf-8'><style>body {{ font-family: sans-serif; line-height: 1.6; padding: 2em; }} h1 {{ color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }} table {{ border-collapse: collapse; width: 100%; margin-bottom: 15px; }} th, td {{ border: 1px solid #ddd; padding: 8px; }} th {{ background-color: #f2f2f2; text-align: left; }}</style></head><body><h1>DrRetina Clinical Report</h1>{html_content}</body></html>"
     
-    tmp_path = os.path.join(tempfile.gettempdir(), "RetinAgent_Clinical_Report.pdf")
+    tmp_path = os.path.join(tempfile.gettempdir(), "DrRetina_Clinical_Report.pdf")
     try:
         HTML(string=html_content).write_pdf(tmp_path)
     except Exception as e:
         # Fallback to TXT if pdfkit fails locally without wkhtmltopdf
-        tmp_path = os.path.join(tempfile.gettempdir(), "RetinAgent_Clinical_Report.txt")
+        tmp_path = os.path.join(tempfile.gettempdir(), "DrRetina_Clinical_Report.txt")
         with open(tmp_path, "w", encoding="utf-8") as f:
-            f.write("RetinAgent Clinical Report\n==========================\n\n" + report)
+            f.write("DrRetina Clinical Report\n==========================\n\n" + report)
             
     return gr.Markdown(value=report, rtl=(language=="Urdu")), report, gr.DownloadButton(value=tmp_path, visible=True)
 
@@ -540,7 +540,7 @@ def chat_fn(message, history, g_state, r_state):
 def build_ui():
     with gr.Blocks(
         css=CSS,
-        title="RetinAgent — AI Diabetic Retinopathy Detection",
+        title="DrRetina — AI Diabetic Retinopathy Detection",
         theme=gr.themes.Base(
             primary_hue="blue",
             neutral_hue="slate",
@@ -643,7 +643,7 @@ def build_ui():
                 with gr.Column(elem_classes="chatbot-container"):
                     gr.HTML("""
                     <div style="text-align: center; padding: 1rem 0 2rem">
-                      <h2 style="color:#1a202c; font-size:1.8rem; font-weight:800; margin-bottom:0.5rem">RetinAgent AI Assistant</h2>
+                      <h2 style="color:#1a202c; font-size:1.8rem; font-weight:800; margin-bottom:0.5rem">DrRetina AI Assistant</h2>
                       <p style="color:#718096; font-size:1rem; max-width:600px; margin: 0 auto">
                         Ask questions about your screening results, treatment guidelines, or general eye health.
                         Powered by <strong>Qwen3-8B</strong>.
@@ -696,9 +696,9 @@ def build_ui():
             # ━━━ Tab 3: Batch Processing (F3) ━━━━━━━━━━━━━━━━━
             with gr.TabItem("ℹ️ How it Works"):
                 gr.Markdown("""
-## 👁️ RetinAgent: Advanced Clinical AI
+## 👁️ DrRetina: Advanced Clinical AI
 
-RetinAgent is a next-generation diagnostic assistant for Diabetic Retinopathy (DR) screening. It combines high-performance vision transformers with generative medical intelligence to provide clinicians with clear, actionable insights.
+DrRetina is a next-generation diagnostic assistant for Diabetic Retinopathy (DR) screening. It combines high-performance vision transformers with generative medical intelligence to provide clinicians with clear, actionable insights.
 
 ---
 
@@ -713,7 +713,7 @@ Our system ensures clinical reliability through a sophisticated automated pipeli
 
 ### 🧠 Modern AI Architecture
 
-RetinAgent is built on cutting-edge infrastructure optimized for medical precision:
+DrRetina is built on cutting-edge infrastructure optimized for medical precision:
 - **Vision Core**: A Vision Transformer (ViT-MAE) specialized in ophthalmic features.
 - **Agentic Layer**: Powered by **Qwen3-8B**, providing structured clinical reporting and natural language Q&A.
 - **High-Performance Hardware**: Fine-tuned on **AMD Instinct™ MI300X** for superior medical precision.
@@ -742,7 +742,7 @@ RetinAgent is built on cutting-edge infrastructure optimized for medical precisi
 
 ---
 
-> ⚠️ **Clinical Note**: RetinAgent is an AI screening tool designed to support, not replace, professional ophthalmic evaluation. Always consult a qualified medical professional for definitive diagnosis.
+> ⚠️ **Clinical Note**: DrRetina is an AI screening tool designed to support, not replace, professional ophthalmic evaluation. Always consult a qualified medical professional for definitive diagnosis.
 | ViT-MAE Encoder + Classification Head | PyTorch (ROCm), HuggingFace |
 | **Explainability** | GradCAM Engine | pytorch-grad-cam |
 | **Agent** | Report Generator + Q&A | Qwen3-8B (Featherless AI) |

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RetinAgent — Entry Point
+DrRetina — Entry Point
 AMD Developer Hackathon 2026
 """
 

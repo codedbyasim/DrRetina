@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RetinAgent — Backend
+DrRetina — Backend
 Model inference, GradCAM, MedGemma reports, Qwen Q&A
 AMD Developer Hackathon 2026
 """
@@ -83,7 +83,7 @@ MEDGEMMA_SYSTEM = {
 # ─────────────────────────────────────────────────────────────────
 # MODEL
 # ─────────────────────────────────────────────────────────────────
-HF_REPO   = "lablab-ai-amd-developer-hackathon/RetinoAgent-weights"
+HF_REPO   = "lablab-ai-amd-developer-hackathon/DrRetina-weights"
 LOCAL_CKPT = os.path.join(os.path.dirname(__file__), "checkpoints", "best_model.pth")
 device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -404,7 +404,7 @@ def _direct_qa(question: str, grade: int, report: str, history: list = None) -> 
         return None
     try:
         system = (
-            f"You are RetinAgent, a clinical AI assistant. "
+            f"You are DrRetina, a clinical AI assistant. "
             f"Patient has Grade {grade} DR — {GRADES[grade][0]}. "
             f"Report context: {report[:400]}. "
             f"Answer clearly and recommend consulting an ophthalmologist."
@@ -460,7 +460,7 @@ def generate_referral_letter_from_agent(grade, confidence):
         resp = llm_client.chat.completions.create(
             model="Qwen/Qwen3-8B",
             messages=[
-                {"role": "system", "content": "You are RetinAgent Clinical AI System generating a formal referral letter."},
+                {"role": "system", "content": "You are DrRetina Clinical AI System generating a formal referral letter."},
                 {"role": "user",   "content": user_prompt},
             ],
             max_tokens=1500,
