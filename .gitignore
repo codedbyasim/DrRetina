@@ -1,27 +1,9 @@
-# Datasets (never commit large data)
-Dataset/
-dataset/
-aptos2019-blindness-detection/
-colored_images/
-train_images/
-
-# Model checkpoints (large .pth files)
-checkpoints/
-*.pth
-
-# SSH Keys
-retinoagent
-retinoagent.pub
-retinoagent1
-retinoagent1.pub
-
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -37,10 +19,56 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-.venv
-venv/
-ENV/
+MANIFEST
 
-# OS
+# Virtual Environment
+venv/
+env/
+ENV/
+retino_env/
+.env
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# ML/DL Specific
+checkpoints/
+*.pth
+*.h5
+*.weights
+*.ckpt
+*.onnx
+*.pb
+*.log
+mlruns/
+lightning_logs/
+
+# Dataset
+Dataset/
+Dataset_224/
+dataset_224/
+aptos2019-blindness-detection/
+colored_images/
+train.csv
+test.csv
+*.zip
+*.tar.gz
+*.csv
+*.pkl
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
 .DS_Store
-Thumbs.db
+
+# Hackathon / Misc
+server.log
+nohup.out
+test.txt
+retinoagent
+retinoagent.pub
+retinoagent1
+retinoagent1.pub
+~$*
