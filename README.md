@@ -11,6 +11,8 @@ pinned: false
 
 # 👁️ DrRetina
 
+> **🏆 Hackathon Submission**
+> This project was developed specifically for the **AMD Developer Hackathon 2026**. It showcases the power of AMD Instinct™ MI300X accelerators and ROCm for real-time, clinical-grade medical AI.
 
 ### _AI-Powered Diagnostic Agent for Diabetic Retinopathy_
 
