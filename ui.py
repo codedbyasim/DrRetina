@@ -492,8 +492,33 @@ def get_report(grade, probs_list, language):
     probs  = np.array(probs_list)
     report = generate_report(grade, probs, language)
     
-    html_content = markdown.markdown(report, extensions=['tables'])
-    html_content = f"<html><head><meta charset='utf-8'><style>body {{ font-family: sans-serif; line-height: 1.6; padding: 2em; }} h1 {{ color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }} table {{ border-collapse: collapse; width: 100%; margin-bottom: 15px; }} th, td {{ border: 1px solid #ddd; padding: 8px; }} th {{ background-color: #f2f2f2; text-align: left; }}</style></head><body><h1>DrRetina Clinical Report</h1>{html_content}</body></html>"
+    html_body = markdown.markdown(report, extensions=['tables'])
+    is_rtl = language in ["Urdu", "Arabic"]
+    dir_attr = 'dir="rtl"' if is_rtl else 'dir="ltr"'
+    text_align = 'right' if is_rtl else 'left'
+    
+    html_content = f"""<html>
+    <head>
+    <meta charset='utf-8'>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&display=swap');
+    body {{ 
+        font-family: 'Noto Sans', 'Noto Naskh Arabic', 'Noto Sans Devanagari', sans-serif; 
+        line-height: 1.6; 
+        padding: 2em; 
+        text-align: {text_align};
+    }} 
+    h1 {{ color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }} 
+    table {{ border-collapse: collapse; width: 100%; margin-bottom: 15px; }} 
+    th, td {{ border: 1px solid #ddd; padding: 8px; text-align: {text_align}; }} 
+    th {{ background-color: #f2f2f2; }}
+    </style>
+    </head>
+    <body {dir_attr}>
+    <h1 style="text-align: {text_align}">DrRetina Clinical Report</h1>
+    {html_body}
+    </body>
+    </html>"""
     
     tmp_path = os.path.join(tempfile.gettempdir(), "DrRetina_Clinical_Report.pdf")
     try:
@@ -504,7 +529,7 @@ def get_report(grade, probs_list, language):
         with open(tmp_path, "w", encoding="utf-8") as f:
             f.write("DrRetina Clinical Report\n==========================\n\n" + report)
             
-    return gr.Markdown(value=report, rtl=(language=="Urdu")), report, gr.DownloadButton(value=tmp_path, visible=True)
+    return gr.Markdown(value=report, rtl=is_rtl), report, gr.DownloadButton(value=tmp_path, visible=True)
 
 def create_referral(grade, probs_list):
     if grade is None or probs_list is None:
@@ -564,7 +589,7 @@ def build_ui():
                         gr.HTML("""<div style="font-size:0.85rem;font-weight:800;color:#2d3748;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.8rem;border-bottom:2px solid #e2e8f0;padding-bottom:4px;">Analysis Setup</div>""")
                         
                         with gr.Row():
-                            lang_in = gr.Dropdown(["English", "Urdu"], label="Report Language", value="English", scale=1)
+                            lang_in = gr.Dropdown(["English", "Urdu", "Hindi", "Arabic", "Spanish", "French"], label="Report Language", value="English", scale=1)
                         
                         img_in = gr.Image(
                             type="pil",
