@@ -43,7 +43,7 @@ pinned: false
 - **🤖 Agentic Clinical Reporting**: Powered by **Qwen3-8B**, the system generates structured, compassionate clinical reports in **English and Urdu**.
 - **💬 Interactive Clinical Q&A**: A LangChain-powered medical agent that answers follow-up questions about the patient's specific grade and treatment protocol.
 - **📦 Batch Eye-Camp Mode**: Process up to 100 images in parallel using MI300X's high memory bandwidth, generating a prioritized patient CSV for triage.
-- **📋 Referral Letter Generator**: Automatically generates formal referral letters to vitreoretinal specialists based on detected severity.
+- **📄 PDF Clinical Reports**: Instantly export and download the generated AI clinical diagnostic report as a professionally formatted PDF for offline patient records.
 
 ---
 
@@ -73,7 +73,7 @@ graph TD
     F --> G
     G --> H[Clinical Report]
     G --> I[Interactive Q&A]
-    G --> J[Referral Letter]
+    G --> J[PDF Export]
 ```
 
 ---
