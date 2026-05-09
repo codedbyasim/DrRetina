@@ -667,9 +667,9 @@ def build_ui():
             with gr.TabItem("💬 Clinical Q&A"):
                 with gr.Column(elem_classes="chatbot-container"):
                     gr.HTML("""
-                    <div style="text-align: center; padding: 1rem 0 2rem">
-                      <h2 style="color:#1a202c; font-size:1.8rem; font-weight:800; margin-bottom:0.5rem">DrRetina AI Assistant</h2>
-                      <p style="color:#718096; font-size:1rem; max-width:600px; margin: 0 auto">
+                    <div style="text-align: center; padding: 0.5rem 0 1rem">
+                      <h2 style="color:#1a202c; font-size:1.6rem; font-weight:800; margin-bottom:0.3rem">DrRetina AI Assistant</h2>
+                      <p style="color:#718096; font-size:0.95rem; max-width:600px; margin: 0 auto">
                         Ask questions about your screening results, treatment guidelines, or general eye health.
                         Powered by <strong>Qwen3-8B</strong>.
                       </p>
@@ -677,11 +677,11 @@ def build_ui():
                     """)
 
                     chatbot = gr.Chatbot(
-                        height=550,
+                        height=350,
                         type="messages",
                         show_label=False,
                         elem_classes="chatbot",
-                        placeholder="<div style='text-align:center;color:#a0aec0;padding:4rem;font-size:1.1rem'>👋 Hello! I'm your clinical assistant.<br>Upload an image in the analysis tab to start a detailed discussion.</div>",
+                        placeholder="<div style='text-align:center;color:#a0aec0;padding:2rem;font-size:1rem'>👋 Hello! I'm your clinical assistant.<br>Upload an image in the analysis tab to start a detailed discussion.</div>",
                     )
 
                     with gr.Row(elem_classes="chat-input-container"):
