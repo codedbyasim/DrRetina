@@ -590,6 +590,7 @@ def build_ui():
                             height=280,
                             show_label=True,
                             show_download_button=False,
+                            sources=["upload", "clipboard"],
                         )
                         
                         btn = gr.Button("🔍 Analyse Image", variant="primary", size="lg")
