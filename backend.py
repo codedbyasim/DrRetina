@@ -83,7 +83,7 @@ MEDGEMMA_SYSTEM = {
 # ─────────────────────────────────────────────────────────────────
 # MODEL
 # ─────────────────────────────────────────────────────────────────
-HF_REPO   = "lablab-ai-amd-developer-hackathon/DrRetina-weights"
+HF_REPO   = "lablab-ai-amd-developer-hackathon/RetinoAgent-weights"
 LOCAL_CKPT = os.path.join(os.path.dirname(__file__), "checkpoints", "best_model.pth")
 device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

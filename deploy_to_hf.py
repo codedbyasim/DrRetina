@@ -12,7 +12,7 @@ from huggingface_hub import HfApi, login
 # ─────────────────────────────────────────────────────────────────
 HF_TOKEN      = os.environ.get("HF_TOKEN", "")
 SPACE_REPO    = "lablab-ai-amd-developer-hackathon/DrRetina"   # Space
-MODEL_REPO    = "lablab-ai-amd-developer-hackathon/DrRetina-weights"  # Model repo (weights)
+MODEL_REPO    = "lablab-ai-amd-developer-hackathon/RetinoAgent-weights"  # Model repo (weights)
 CHECKPOINT    = r"H:\RetinoAgent\checkpoints\best_model.pth"
 
 # Files to upload to the Space
