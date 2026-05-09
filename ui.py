@@ -809,19 +809,6 @@ Classification Head:
 | Accuracy | > 80% | **85.01%** ✅ |
 | Inference Latency | < 5s | **~2–3s** ✅ |
 """)
-                import os
-                base_dir = os.path.dirname(os.path.abspath(__file__))
-                gr.Gallery(
-                    value=[
-                        os.path.join(base_dir, "graphs", "acc_plot.png"),
-                        os.path.join(base_dir, "graphs", "kappa_plot.png"),
-                        os.path.join(base_dir, "graphs", "loss_plot.png"),
-                        os.path.join(base_dir, "graphs", "lr_plot.png")
-                    ],
-                    columns=2,
-                    show_label=False,
-                    elem_id="graphs-gallery"
-                )
                 gr.Markdown("""
 ---
 
