@@ -532,11 +532,15 @@ def user_input(message, history, g_state):
     history.append({"role": "user", "content": message})
     return "", history, history
 
-def bot_response(history, g_state, r_state):
+def bot_response(history, g_state, r_state, probs_state):
     if g_state is None or not history or history[-1]["role"] == "assistant":
         return history, history
     message = history[-1]["content"]
-    ans = qwen_qa(message, g_state, r_state, history=history[:-1]) or template_qa(message, g_state)
+    
+    # Calculate real confidence from the probs array
+    real_conf = (probs_state[g_state] * 100) if probs_state is not None else 90.0
+    
+    ans = qwen_qa(message, g_state, r_state, history=history[:-1], confidence=real_conf) or template_qa(message, g_state)
     history.append({"role": "assistant", "content": ans})
     return history, history
 
@@ -694,7 +698,7 @@ def build_ui():
                     api_name=False,
                 ).then(
                     bot_response,
-                    inputs=[chat_hist, g_state, r_state],
+                    inputs=[chat_hist, g_state, r_state, probs_state],
                     outputs=[chatbot, chat_hist],
                     api_name=False,
                 )
@@ -706,7 +710,7 @@ def build_ui():
                     api_name=False,
                 ).then(
                     bot_response,
-                    inputs=[chat_hist, g_state, r_state],
+                    inputs=[chat_hist, g_state, r_state, probs_state],
                     outputs=[chatbot, chat_hist],
                     api_name=False,
                 )
