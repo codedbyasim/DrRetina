@@ -283,43 +283,38 @@ def agent_generate_report(grade: int, probs, language: str = "English") -> Optio
 # AGENT Q&A  (FR-06)
 # ─────────────────────────────────────────────────────────────────
 def agent_qa(question: str, grade: int, confidence: float, report: str, history: list = None) -> Optional[str]:
-    """Answer clinical questions using LangChain Agent with tools."""
-    llm = get_llm(temperature=0.5, max_tokens=1500)
+    """Answer clinical questions quickly without slow tool roundtrips."""
+    llm = get_llm(temperature=0.6, max_tokens=1500)
     if not llm:
         return None
         
+    g_info = DR_GRADES[grade]
     sys_msg = f"""You are DrRetina, a clinical AI assistant specializing in Diabetic Retinopathy (DR).
 
-Patient's screening result:
-- DR Grade: {grade} — {DR_GRADES[grade]['name']}
+Patient's current condition:
+- DR Grade: {grade} — {g_info['name']}
+- Severity: {g_info['severity']}
+- Expected Lesions: {g_info['lesions']}
+- Urgency: {g_info['urgency']}
+- Recommended Treatment: {g_info['treatment']}
+- Lifestyle Advice: {g_info['lifestyle']}
 - Confidence: {confidence:.1f}%
-- Screening Report: {report[:400] if report else 'Not available'}
 
-You have access to tools for treatment guidelines, severity analysis, and referral letters.
-Always be compassionate, clear, and recommend consulting an ophthalmologist."""
+IMPORTANT INSTRUCTIONS:
+1. Use the clinical context above to answer the user's questions accurately.
+2. Be compassionate, clear, and professional.
+3. Always recommend consulting a qualified ophthalmologist.
+4. MULTILINGUAL SUPPORT: You MUST reply in the exact same language that the user asks the question in (e.g., if they ask in Urdu, reply in fluent Urdu; if Hindi, reply in Hindi)."""
 
     try:
-        agent = create_agent(model=llm, tools=TOOLS, system_prompt=sys_msg)
-        msgs = []
+        from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+        msg = [SystemMessage(content=sys_msg)]
         if history:
-            for msg in history:
-                if msg["role"] == "user": msgs.append(("human", msg["content"]))
-                else: msgs.append(("ai", msg["content"]))
-        msgs.append(("user", question))
-        response = agent.invoke({"messages": msgs})
-        return response["messages"][-1].content
+            for h in history:
+                if h["role"] == "user": msg.append(HumanMessage(content=h["content"]))
+                else: msg.append(AIMessage(content=h["content"]))
+        msg.append(HumanMessage(content=question))
+        return llm.invoke(msg).content
     except Exception as e:
         print(f"[Agent QA Error] {e}")
-        # Fallback: direct LLM without tools
-        try:
-            llm = get_llm(temperature=0.6, max_tokens=1500)
-            msg = [SystemMessage(content=sys_msg)]
-            if history:
-                for h in history:
-                    if h["role"] == "user": msg.append(HumanMessage(content=h["content"]))
-                    else: msg.append(AIMessage(content=h["content"]))
-            msg.append(HumanMessage(content=question))
-            return llm.invoke(msg).content
-        except Exception as e2:
-            print(f"[Agent QA Fallback Error] {e2}")
-            return None
+        return None
