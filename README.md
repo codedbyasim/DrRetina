@@ -1,17 +1,3 @@
----
-title: RetinAgent
-emoji: 👁️
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 5.6.0
-python_version: "3.10"
-app_file: app.py
-pinned: true
-license: mit
-short_description: Clinical AI Agent for DR Detection | AMD MI300X | Kappa 0.91
----
-
 # 👁️ RetinAgent
 
 ### _AI-Powered Diagnostic Agent for Diabetic Retinopathy_
