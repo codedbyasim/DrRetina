@@ -1,4 +1,16 @@
+---
+title: DrRetina
+emoji: 👁️
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: "5.5.0"
+app_file: app.py
+pinned: false
+---
+
 # 👁️ RetinAgent
+
 
 ### _AI-Powered Diagnostic Agent for Diabetic Retinopathy_
 
