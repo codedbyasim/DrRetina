@@ -24,19 +24,22 @@ from langchain_core.messages import SystemMessage, HumanMessage
 _DEFAULT_KEY = "rc_c871260215042ae1dc87e28ef5672b1658b30652445af3837d0211b17edee2b8"
 FEATHERLESS_KEY = os.environ.get("FEATHERLESS_API_KEY", _DEFAULT_KEY)
 
-def get_llm(temperature: float = 0.3, max_tokens: int = 800):
+def get_llm(temperature: float = 0.3, max_tokens: int = 800, stop_tokens: list = None):
     """Returns LangChain ChatOpenAI configured for Qwen3-8B via Featherless."""
     if not FEATHERLESS_KEY:
         return None
+    
+    kwargs = {}
+    if stop_tokens:
+        kwargs["stop"] = stop_tokens
+        
     return ChatOpenAI(
         model="Qwen/Qwen3-8B",
         openai_api_key=FEATHERLESS_KEY,
         openai_api_base="https://api.featherless.ai/v1",
         temperature=temperature,
         max_tokens=max_tokens,
-        model_kwargs={
-            "stop": ["End of report", "AI Disclaimer", "©"]
-        }
+        model_kwargs=kwargs
     )
 
 
@@ -238,7 +241,7 @@ TOOLS = [get_grade_info, get_treatment_options, get_urgency_level,
 # ─────────────────────────────────────────────────────────────────
 def agent_generate_report(grade: int, probs, language: str = "English") -> Optional[str]:
     """Generate diagnostic report using LangChain + Qwen."""
-    llm = get_llm(temperature=0.3, max_tokens=1500)
+    llm = get_llm(temperature=0.3, max_tokens=1500, stop_tokens=["End of report", "AI Disclaimer", "©"])
     if not llm:
         return None
     try:
