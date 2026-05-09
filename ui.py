@@ -197,25 +197,7 @@ textarea:focus, input[type="text"]:focus {
     padding: 1rem !important;
 }
 
-.message.user > div {
-    background: #3182ce !important;
-    color: #ffffff !important;
-    border-radius: 20px 20px 4px 20px !important;
-    padding: 12px 18px !important;
-    font-size: 0.98rem !important;
-    box-shadow: 0 4px 12px rgba(49,130,206,0.2) !important;
-    border: none !important;
-}
-
-.message.bot > div, .message.assistant > div {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    color: #2d3748 !important;
-    border-radius: 20px 20px 20px 4px !important;
-    padding: 12px 18px !important;
-    font-size: 0.98rem !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
-}
+/* Removed custom bubble CSS for Gradio 5 native support */
 
 .chat-input-container {
     background: #ffffff !important;
@@ -535,19 +517,26 @@ def create_referral(grade, probs_list):
 # ─────────────────────────────────────────────────────────────────
 # CHAT FUNCTION
 # ─────────────────────────────────────────────────────────────────
-def chat_fn(message, history, g_state, r_state):
+def user_input(message, history, g_state):
     if history is None:
         history = []
     if not message.strip():
-        return history, history
+        return "", history, history
     if g_state is None:
+        history.append({"role": "user", "content": message})
         history.append({
             "role": "assistant",
             "content": "⚠️ Please upload and analyse a retinal image first, then I can answer your questions."
         })
+        return "", history, history
+    history.append({"role": "user", "content": message})
+    return "", history, history
+
+def bot_response(history, g_state, r_state):
+    if g_state is None or not history or history[-1]["role"] == "assistant":
         return history, history
-    ans = qwen_qa(message, g_state, r_state, history=history) or template_qa(message, g_state)
-    history.append({"role": "user",      "content": message})
+    message = history[-1]["content"]
+    ans = qwen_qa(message, g_state, r_state, history=history[:-1]) or template_qa(message, g_state)
     history.append({"role": "assistant", "content": ans})
     return history, history
 
@@ -699,18 +688,28 @@ def build_ui():
                 chat_hist = gr.State(None)
 
                 send.click(
-                    chat_fn,
-                    inputs=[msg, chat_hist, g_state, r_state],
+                    user_input,
+                    inputs=[msg, chat_hist, g_state],
+                    outputs=[msg, chatbot, chat_hist],
+                    api_name=False,
+                ).then(
+                    bot_response,
+                    inputs=[chat_hist, g_state, r_state],
                     outputs=[chatbot, chat_hist],
                     api_name=False,
-                ).then(lambda: "", outputs=msg)
+                )
 
                 msg.submit(
-                    chat_fn,
-                    inputs=[msg, chat_hist, g_state, r_state],
+                    user_input,
+                    inputs=[msg, chat_hist, g_state],
+                    outputs=[msg, chatbot, chat_hist],
+                    api_name=False,
+                ).then(
+                    bot_response,
+                    inputs=[chat_hist, g_state, r_state],
                     outputs=[chatbot, chat_hist],
                     api_name=False,
-                ).then(lambda: "", outputs=msg)
+                )
 
             # ━━━ Tab 3: Batch Processing (F3) ━━━━━━━━━━━━━━━━━
             with gr.TabItem("ℹ️ How it Works"):
