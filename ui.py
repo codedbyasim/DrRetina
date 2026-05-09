@@ -447,14 +447,10 @@ def fast_analyse(pil_img):
         
     # F5: Image Quality Pre-check
     q_ok, q_msg = check_image_quality(pil_img)
-    q_alert = ""
-    if not q_ok:
-        q_alert = f"<div style='background:#fff5f5;border:1px solid #fc8181;border-radius:8px;padding:8px;margin-bottom:10px;'><b style='color:#c53030;'>QC Alert:</b> <span style='color:#c53030;font-size:0.9rem'>{q_msg}</span></div>"
-
     # FR-01: Validate image
     ok, msg = validate_image(pil_img)
     if not ok:
-        err = q_alert + f"""<div style='background:#fff5f5;border:1.5px solid #fc8181;border-radius:14px;
+        err = f"""<div style='background:#fff5f5;border:1.5px solid #fc8181;border-radius:14px;
                    padding:1.25rem 1.5rem;margin:1rem 0'>
                    <div style='font-size:1.1rem;margin-bottom:0.3rem'>⚠️ Invalid Image</div>
                    <p style='color:#c53030;margin:0;font-size:0.9rem'>{msg}</p></div>"""
@@ -462,10 +458,7 @@ def fast_analyse(pil_img):
     try:
         grade, probs, pil224, cam_pil = predict(pil_img)
         max_prob = float(probs[grade])
-        if max_prob < 0.50:
-            ood_alert = f"<div style='background:#fff5f5;border:1px solid #fc8181;border-radius:8px;padding:8px;margin-bottom:10px;'><b style='color:#c53030;'>Low Confidence Alert:</b> <span style='color:#c53030;font-size:0.9rem'>Model confidence is only {max_prob*100:.1f}%. This image might be of poor quality, out-of-focus, or not a standard retinal fundus photo.</span></div>"
-            q_alert = ood_alert + q_alert
-        badge = q_alert + make_grade_badge(grade, probs)
+        badge = make_grade_badge(grade, probs)
             
         return pil224, cam_pil, badge, LOADING_REPORT_HTML, grade, probs.tolist()
     except Exception as e:
