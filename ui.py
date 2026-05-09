@@ -768,7 +768,12 @@ DrRetina is built on cutting-edge infrastructure optimized for medical precision
 ---
 
 > ⚠️ **Clinical Note**: DrRetina is an AI screening tool designed to support, not replace, professional ophthalmic evaluation. Always consult a qualified medical professional for definitive diagnosis.
-| ViT-MAE Encoder + Classification Head | PyTorch (ROCm), HuggingFace |
+
+### ⚙️ Technology Stack
+
+| Component | Technology | Framework / Source |
+|-----------|------------|---------------------|
+| **Vision Model** | ViT-MAE Encoder + Classification Head | PyTorch (ROCm), HuggingFace |
 | **Explainability** | GradCAM Engine | pytorch-grad-cam |
 | **Agent** | Report Generator + Q&A | Qwen3-8B (Featherless AI) |
 | **Interface** | Gradio Web UI | Gradio 5.x |
