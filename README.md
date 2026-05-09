@@ -131,5 +131,3 @@ To enable the LLM reporting and Q&A features on HF Spaces, you must set the foll
 ## 📄 License
 
 MIT License — see [LICENSE](LICENSE)
-
-> ⚠️ **Disclaimer**: RetinAgent is an AI screening tool for research. Always consult a qualified ophthalmologist for clinical diagnosis.
