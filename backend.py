@@ -378,16 +378,12 @@ Please consult a qualified ophthalmologist immediately.
 # ─────────────────────────────────────────────────────────────────
 # QWEN Q&A  (FR-06)  — LangChain ReAct Agent
 # ─────────────────────────────────────────────────────────────────
-def qwen_qa(question: str, grade: int, report: str, history: list = None) -> str | None:
+def qwen_qa(question: str, grade: int, report: str, history: list = None, confidence: float = 90.0) -> str | None:
     """
     Answer clinical questions:
     1. LangChain ReAct agent with tools (primary)
     2. Direct LLM fallback
     """
-    probs_mock = [0.0] * 5
-    probs_mock[grade] = 1.0
-    confidence = 90.0  # placeholder for Q&A context
-
     # 1. LangChain agent with tools (SRS §2.2 — Agent Layer)
     if AGENT_AVAILABLE and FEATHERLESS_KEY:
         ans = agent_qa(question, grade, confidence, report, history=history)
