@@ -9,7 +9,11 @@ app_file: app.py
 pinned: false
 ---
 
-# 👁️ DrRetina
+# DrRetina — AI Diabetic Retinopathy Agent
+
+[![Live Demo](https://img.shields.io/badge/🤗-Live_Demo-blue)](https://huggingface.co/spaces/lablab-ai-amd-developer-hackathon/DrRetina)
+
+Public Repository | MIT License | AMD Developer Hackathon 2026
 
 > **🏆 Hackathon Submission**
 > This project was developed specifically for the **AMD Developer Hackathon 2026**. It showcases the power of AMD Instinct™ MI300X accelerators and ROCm for real-time, clinical-grade medical AI.
