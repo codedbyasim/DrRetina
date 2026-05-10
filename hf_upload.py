@@ -5,6 +5,14 @@ import os
 print("Starting upload to DrRetina Space...")
 api = HfApi()
 
+api.create_repo(
+    repo_id="lablab-ai-amd-developer-hackathon/DrRetina",
+    repo_type="space",
+    space_sdk="gradio",
+    token=os.environ.get("HF_TOKEN", ""),
+    exist_ok=True
+)
+
 api.upload_folder(
     folder_path=".",
     repo_id="lablab-ai-amd-developer-hackathon/DrRetina",
