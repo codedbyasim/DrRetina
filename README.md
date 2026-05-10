@@ -58,7 +58,7 @@ DrRetina is optimized for the **AMD Instinct™ MI300X** accelerator via **ROCm 
 | **Memory Bandwidth**  | 5.3 TB/s            | Enables high-throughput batch processing for eye camps.       |
 | **VRAM**              | 192GB HBM3          | Allows hosting Vision Transformers and LLMs on a single card. |
 | **Inference Latency** | ~25ms (ViT-MAE)     | Near-instant diagnosis for real-time clinical workflows.      |
-| **Training Speed**    | 5.3 min (30 Epochs) | Rapid iteration and hyperparameter tuning.                    |
+| **Training Speed**    | 5.3 min (50 Epochs) | Rapid iteration and hyperparameter tuning.                    |
 
 ---
 
